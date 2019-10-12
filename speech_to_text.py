@@ -3,6 +3,8 @@ import pyaudio
 import wave
 import sys
 import os
+import struct
+import math
 
 sys.path.append(os.path.join(os.path.dirname(__file__), './binding/python'))
 from porcupine import Porcupine
@@ -14,7 +16,7 @@ CHUNK = 1024
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 SHORT_NORMALIZE = (1.0/32768.0)
-THRESHOLD = 0.015
+THRESHOLD = 0.005
 
 audio = pyaudio.PyAudio()
 
@@ -23,9 +25,9 @@ Using Speech Recognition and CMU Sphinx listen
 for incoming sound returning the text translation
 '''
 def speech_to_text(audio):
-    recognizer = sr.Recognizer();
+    recognizer = sr.Recognizer()
     try:
-        result = r.recognize_sphinx(audio)
+        result = recognizer.recognize_sphinx(audio)
         print("Sphinx thinks you said " + result)
     except sr.UnknownValueError:
         print("Sphinx could not understand audio")
@@ -38,39 +40,40 @@ Start speech to text (triggerd by hotword from picovoice)
 Keep doing speech to text untill there is a long enough pause
 '''
 def trigger_conversion():
+    library_path = './lib/mac/x86_64/libpv_porcupine.dylib'
+    model_file_path ='./lib/common/porcupine_params.pv' 
+    keyword_file_paths = ['./keyword_files/mac/alexa_mac.ppn']
+    sensitivities = [0.2]
+    porcupine = Porcupine(
+                library_path=library_path,
+                model_file_path=model_file_path,
+                keyword_file_paths=keyword_file_paths,
+                sensitivities=sensitivities)
+    # start Recording
+    stream = audio.open(format=FORMAT, channels=CHANNELS,
+                rate=RATE, input=True,
+                frames_per_buffer=CHUNK)
 
     try :
-        library_path = './lib/mac/x86_64/libpv_porpcupine.dylib'
-        model_file_path ='./' 
-        keyword_file_paths = './keyword_files/mac/hey_pico_mac.ppn'
-        sensitivities = [0.2]
-        porcupine = Porcupine(
-                    library_path=library_path,
-                    model_file_path=model_file_path,
-                    keyword_file_paths=keyword_file_paths,
-                    sensitivities=[sensitivity] * num_keywords)
-        # start Recording
-        stream = audio.open(format=FORMAT, channels=CHANNELS,
-                    rate=RATE, input=True,
-                    frames_per_buffer=CHUNK)
-        print "recording..."
+        print("recording...")
         frames = []
         silent_frames_count = 0
         
-        while silent_frames_count < 5:
+        while True:
             # read chunk of audio
             data = stream.read(CHUNK)
             # check if the chunk is silent
             if(is_silent(data)):
-                silent_frames_count += 1
+                if(silent_frames_count > 5):
+                    break
             else:
                 # setup object for porcupine and check for keyword
                 pcm = struct.unpack_from("h" * porcupine.frame_length, data)
                 result = porcupine.process(pcm)
                 # if we got the keyword then we add the frames to data
-                if num_keywords == 1 and result:
+                if result:
                     frames.append(data)
-                    print('detected keyword at time %f' % _frame_index_to_sec(i))
+                    print('detected keyword')
         return frames
     except KeyboardInterrupt:
             print('stopping ...')
@@ -110,4 +113,5 @@ def get_rms(block):
 
 def is_silent(block):
     amplitude = get_rms(block)
-    return amplitude < THRESHHOLD
+    print(amplitude)
+    return amplitude < THRESHOLD
