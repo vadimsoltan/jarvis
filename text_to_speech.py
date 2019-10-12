@@ -2,6 +2,10 @@ import speech_recognition as sr
 import pyaudio
 import wave
 import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), './binding/python'))
+from porcupine import Porcupine
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -34,26 +38,51 @@ Start speech to text (triggerd by hotword from picovoice)
 Keep doing speech to text untill there is a long enough pause
 '''
 def trigger_conversion():
-    # start Recording
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                rate=RATE, input=True,
-                frames_per_buffer=CHUNK)
-    print "recording..."
-    frames = []
-    silent_frames_count = 0;
-    
-    while silent_frames_count < 5:
-        data = stream.read(CHUNK)
-        if(is_silent(data)):
-            silent_frames_count += 1
-        else:
-            frames.append(data)
 
-    print "finished recording"
-    speech_to_text(frames)
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
+    try :
+        library_path = './lib/mac/x86_64/libpv_porpcupine.dylib'
+        model_file_path ='./' 
+        keyword_file_paths = './keyword_files/mac/hey_pico_mac.ppn'
+        sensitivities = [0.2]
+        porcupine = Porcupine(
+                    library_path=library_path,
+                    model_file_path=model_file_path,
+                    keyword_file_paths=keyword_file_paths,
+                    sensitivities=[sensitivity] * num_keywords)
+        # start Recording
+        stream = audio.open(format=FORMAT, channels=CHANNELS,
+                    rate=RATE, input=True,
+                    frames_per_buffer=CHUNK)
+        print "recording..."
+        frames = []
+        silent_frames_count = 0
+        
+        while silent_frames_count < 5:
+            # read chunk of audio
+            data = stream.read(CHUNK)
+            # check if the chunk is silent
+            if(is_silent(data)):
+                silent_frames_count += 1
+            else:
+                # setup object for porcupine and check for keyword
+                pcm = struct.unpack_from("h" * porcupine.frame_length, data)
+                result = porcupine.process(pcm)
+                # if we got the keyword then we add the frames to data
+                if num_keywords == 1 and result:
+                    frames.append(data)
+                    print('detected keyword at time %f' % _frame_index_to_sec(i))
+        return frames
+    except KeyboardInterrupt:
+            print('stopping ...')
+    finally:
+        if porcupine is not None:
+            porcupine.delete()
+
+        if stream is not None:
+            stream.close()
+
+        if audio is not None:
+            audio.terminate()
 
 '''
 RMS amplitude is defined as the square root of the 
