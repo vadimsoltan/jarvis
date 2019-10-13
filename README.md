@@ -1,13 +1,10 @@
-### JARVIS BOT
-
+# JARVIS BOT
 This is a bot that will use speech-to-text modules as well as machine learning to execute basic commands.
 
-## Version 0.01
-
-Current design includes has the following requirements:
+## Version 0.1
+Current design needs to following modules:
 - Porcupine: Picovoice
 - SpeechRecognition
+- SWIG + PCRE
 - CMU Sphinx
-- portaudio
-- pyaudio
-- enum34
+- Rhino
