@@ -4,5 +4,4 @@ import executor
 
 
 if __name__=='__main__':
-    data = speech_to_text.trigger_conversion()
-    print(data)
+    speech_to_text.start_recording()
