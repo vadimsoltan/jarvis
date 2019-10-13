@@ -7,6 +7,7 @@ for incoming sound returning the text translation
 '''
 def speech_to_text():
     recognizer = sr.Recognizer()
+    result = ''
     with sr.AudioFile(AUDIO_FILE) as source:
         audio = recognizer.record(source)  # read the entire audio file
     try:

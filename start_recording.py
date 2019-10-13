@@ -49,6 +49,7 @@ def start_recording():
             sample_size = pa.get_sample_size(FORMAT)
             result = handle.process(pcm)
             if result:
+                executed = False
                 frames = []
                 print('Keep Speaking...')
                 while(silent_frames < 20):
@@ -58,8 +59,10 @@ def start_recording():
                     frames.append(frame)
                     save_wav(sample_size, b''.join(frames))
                 print('[%s] detected keyword' % str(datetime.now()))
+                if(not(executed)):
+                    speech_to_text.speech_to_text()
+                    executed = True
             silent_frames = 0
-            print(speech_to_text.speech_to_text())
 
     except KeyboardInterrupt:
         print('stopping ...')
