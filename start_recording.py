@@ -3,13 +3,9 @@ import os
 import pyaudio
 import struct
 from datetime import datetime
-import speech_recognition as sr
 import wave
 import math
-
-
 sys.path.append(os.path.join(os.path.dirname(__file__), './binding/python'))
-
 import porcupine
 
 FORMAT = pyaudio.paInt16
@@ -21,11 +17,9 @@ WAVE_OUTPUT_FILENAME = "output.wav"
 SHORT_NORMALIZE = (1.0/32768.0)
 THRESHOLD = 0.005
 
-
 audio_stream = None
 handle = None
 pa = None
-
 
 def start_recording():
     try:
@@ -49,9 +43,9 @@ def start_recording():
         print('Listening for keyword alexa...')
         silent_frames = 0
         while True:
-            sample_size = pa.get_sample_size(FORMAT)
             data = audio_stream.read(handle.frame_length)
             pcm = struct.unpack_from("h" * handle.frame_length, data)
+            sample_size = pa.get_sample_size(FORMAT)
             result = handle.process(pcm)
             if result:
                 while(silent_frames < 5):
@@ -73,6 +67,10 @@ def start_recording():
         if pa is not None:
             pa.terminate()
 
+'''
+Write the recorded audio after the hotword to an outfile
+for speech recognition to read from later
+'''
 def save_wav(audio, frames):
     waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
     waveFile.setnchannels(CHANNELS)
@@ -105,9 +103,11 @@ def get_rms(block):
 
     return math.sqrt( sum_squares / count )
 
+'''
+Check if the amplitude for the current chunk of audio is lower than the threshold
+'''
 def is_silent(block):
     amplitude = get_rms(block)
-    print(amplitude)
     return amplitude < THRESHOLD
 
 

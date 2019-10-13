@@ -1,3 +1,5 @@
+import speech_recognition as sr
+
 '''
 Using Speech Recognition and CMU Sphinx listen
 for incoming sound returning the text translation
