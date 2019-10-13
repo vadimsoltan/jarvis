@@ -26,7 +26,7 @@ def start_recording():
     try:
         library_path = './lib/mac/x86_64/libpv_porcupine.dylib'
         model_file_path = './lib/common/porcupine_params.pv'
-        keyword_file_paths = ['./keyword_files/mac/alexa_mac.ppn']
+        keyword_file_paths = ['./keyword_files/mac/jarvis_mac.ppn']
         sensitivities = [0.2]
         handle = porcupine.Porcupine(library_path,
                                     model_file_path,
@@ -41,7 +41,7 @@ def start_recording():
                 input=True,
                 frames_per_buffer=handle.frame_length)
 
-        print('Listening for keyword alexa...')
+        print('Listening for keyword jarvis...')
         silent_frames = 0
         while True:
             data = audio_stream.read(handle.frame_length, exception_on_overflow = False)
