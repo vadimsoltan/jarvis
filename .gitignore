@@ -1,0 +1,6 @@
+.DS_Store
+_pycache_
+./binding/python/__pycache__/
+*.pyc
+output.wav
+.vscode/
