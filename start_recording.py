@@ -7,11 +7,12 @@ import wave
 import math
 sys.path.append(os.path.join(os.path.dirname(__file__), './binding/python'))
 import porcupine
+import speech_to_text
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 44100
-CHUNK = 1024
+RATE = 16000
+CHUNK = 512
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 SHORT_NORMALIZE = (1.0/32768.0)
@@ -43,17 +44,22 @@ def start_recording():
         print('Listening for keyword alexa...')
         silent_frames = 0
         while True:
-            data = audio_stream.read(handle.frame_length)
+            data = audio_stream.read(handle.frame_length, exception_on_overflow = False)
             pcm = struct.unpack_from("h" * handle.frame_length, data)
             sample_size = pa.get_sample_size(FORMAT)
             result = handle.process(pcm)
             if result:
-                while(silent_frames < 5):
-                    frame = audio_stream.read(CHUNK)
+                frames = []
+                print('Keep Speaking...')
+                while(silent_frames < 20):
+                    frame = audio_stream.read(CHUNK, exception_on_overflow = False)
                     if(is_silent(frame)):
                         silent_frames += 1
-                    save_wav(sample_size, frame)
+                    frames.append(frame)
+                    save_wav(sample_size, b''.join(frames))
                 print('[%s] detected keyword' % str(datetime.now()))
+            silent_frames = 0
+            print(speech_to_text.speech_to_text())
 
     except KeyboardInterrupt:
         print('stopping ...')
@@ -109,7 +115,6 @@ Check if the amplitude for the current chunk of audio is lower than the threshol
 def is_silent(block):
     amplitude = get_rms(block)
     return amplitude < THRESHOLD
-
 
 if __name__ == '__main__':
     start_recording()

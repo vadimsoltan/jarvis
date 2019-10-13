@@ -1,11 +1,14 @@
 import speech_recognition as sr
+AUDIO_FILE = 'output.wav'
 
 '''
 Using Speech Recognition and CMU Sphinx listen
 for incoming sound returning the text translation
 '''
-def speech_to_text(audio):
+def speech_to_text():
     recognizer = sr.Recognizer()
+    with sr.AudioFile(AUDIO_FILE) as source:
+        audio = recognizer.record(source)  # read the entire audio file
     try:
         result = recognizer.recognize_sphinx(audio)
         print("Sphinx thinks you said " + result)
