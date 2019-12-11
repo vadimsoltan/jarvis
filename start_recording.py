@@ -24,9 +24,9 @@ pa = None
 
 def start_recording():
     try:
-        library_path = './lib/mac/x86_64/libpv_porcupine.dylib'
+        library_path = './lib/linux/x86_64/libpv_porcupine.so'
         model_file_path = './lib/common/porcupine_params.pv'
-        keyword_file_paths = ['./keyword_files/mac/jarvis_mac.ppn']
+        keyword_file_paths = ['./keyword_files/linux/jarvis_linux.ppn']
         sensitivities = [0.2]
         handle = porcupine.Porcupine(library_path,
                                     model_file_path,
