@@ -12,3 +12,4 @@ Current design includes has the following requirements:
 - portaudio
 - pyaudio
 - enum34
+test
